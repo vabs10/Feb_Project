@@ -1,54 +1,280 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const app = express();
 const router = express.Router();
-const {Application} = require("./Schema/Application");
-// const {JobApplicant} = require("./Schema/Application");
-// const {JobSchema} = require("./Schema/Application");
-// const {Rating} = require("./Schema/Application");
-// const {User} = require("./Schema/Application");
+const { Application } = require("./Schema/Application");
+const { JobApplicant } = require("./Schema/JobApplicant");
+const { JobSchema } = require("./Schema/Job");
+const { Rating } = require("./Schema/Rating");
+const { User } = require("./Schema/User");
 
-const {Recruiter} = require("./Schema/Recruiter");
+const { Recruiter } = require("./Schema/Recruiter");
 
 // Need to commit
-function init(){
+function init() {
+  app.use(cors());
+  app.use(express.json());
 
-app.use(cors());
-app.use(express.json());
-
-mongoose.connect("mongodb://127.0.0.1/jobPortal")
-.then((res)=> console.log("Connected to the DB"))
-.catch((err)=> console.log("Error :-"+ err));
-app.use("/jobPortal", router);
+  mongoose
+    .connect("mongodb://127.0.0.1/jobPortal")
+    .then((res) => console.log("Connected to the DB"))
+    .catch((err) => console.log("Error :-" + err));
+  app.use("/jobPortal", router);
 }
 
 init();
 
-router.get("/",async(req, res)=> {
-try{
-const applications = await Recruiter.find({});
-console.log("getStudentsAsync :: applications Fetched :- ", applications);
-res.json(applications);
-}
-catch(err){
-console.log("Error findind the data"+ err);
-}
-})
+router.get("/application", async (req, res) => {
+  try {
+    const applications = await Application.find({});
+    console.log("getStudentsAsync :: applications Fetched :- ", applications);
+    res.json(applications);
+  } catch (err) {
+    console.log("Error findind the data" + err);
+  }
+});
 
+router.get("/recruiter", async (req, res) => {
+  try {
+    const recruiters = await Recruiter.find({});
+    console.log("getStudentsAsync :: recruiters Fetched :- ", recruiters);
+    res.json(recruiters);
+  } catch (err) {
+    console.log("Error findind the data" + err);
+  }
+});
 
-router.post("/recruiters",async(req, res)=>{
-    try{
-        console.log("Application", req.body)
-        const newApplication = new Recruiter({
-            ...req.body,
-        })
-        const response = await newApplication.save();
-        res.send("Success"+response);
-    }catch(err){
-        console.log("Error Adding the data"+ err);
+router.get("/rating", async (req, res) => {
+  try {
+    const recruiters = await Rating.find({});
+    console.log("getStudentsAsync :: recruiters Fetched :- ", recruiters);
+    res.json(recruiters);
+  } catch (err) {
+    console.log("Error findind the data" + err);
+  }
+});
+
+router.get("/user", async (req, res) => {
+  try {
+    const recruiters = await User.find({});
+    console.log("getStudentsAsync :: recruiters Fetched :- ", recruiters);
+    res.json(recruiters);
+  } catch (err) {
+    console.log("Error findind the data" + err);
+  }
+});
+
+router.post("/recruiter", async (req, res) => {
+  try {
+    console.log("Application", req.body);
+    const newApplication = new Recruiter({
+      ...req.body,
+    });
+    const response = await newApplication.save();
+    res.send("Success" + response);
+  } catch (err) {
+    console.log("Error Adding the data" + err);
+  }
+});
+
+router.post("/rating", async (req, res) => {
+  try {
+    console.log("Application", req.body);
+    const newApplication = new Rating({
+      ...req.body,
+    });
+    const response = await newApplication.save();
+    res.send("Success " + response);
+  } catch (err) {
+    console.log("Error Adding the data " + err);
+  }
+});
+
+router.post("/user", async (req, res) => {
+  try {
+    console.log("Application", req.body);
+    const newApplication = new User({
+      ...req.body,
+    });
+    const response = await newApplication.save();
+    res.send("Success " + response);
+  } catch (err) {
+    console.log("Error Adding the data " + err);
+  }
+});
+
+router.put("/recruiter/:id", async (req, res) => {
+  console.log("Received the Update request!");
+
+  try {
+    console.log("Request Body :- ", req.body);
+    if (Object.keys(req.body).length === 0) {
+      res.send("Unable to add recruiter as we received empty body");
+      return;
     }
-})
+    const recruiterId = req.params.id;
+    const response = await Recruiter.findByIdAndUpdate(
+      { _id: recruiterId },
+      {
+        $set: {
+          ...req.body,
+        },
+      },
+      { new: true } //Returns the modified data, without this you will get original data
+    );
+    res.send("Success, student got updated!" + response);
+  } catch (err) {
+    res.send("Something went wrong, contact your admin!!" + err);
+  }
+});
+
+router.put("/rating/:id", async (req, res) => {
+  console.log("Received the Update request!");
+
+  try {
+    console.log("Request Body :- ", req.body);
+    if (Object.keys(req.body).length === 0) {
+      res.send("Unable to add recruiter as we received empty body");
+      return;
+    }
+    const recruiterId = req.params.id;
+    const response = await Rating.findByIdAndUpdate(
+      { _id: recruiterId },
+      {
+        $set: {
+          ...req.body,
+        },
+      },
+      { new: true } //Returns the modified data, without this you will get original data
+    );
+    res.send("Success, student got updated!" + response);
+  } catch (err) {
+    res.send("Something went wrong, contact your admin!!" + err);
+  }
+});
+
+router.put("/user/:id", async (req, res) => {
+  console.log("Received the Update request!");
+
+  try {
+    console.log("Request Body :- ", req.body);
+    if (Object.keys(req.body).length === 0) {
+      res.send("Unable to add recruiter as we received empty body");
+      return;
+    }
+    const recruiterId = req.params.id;
+    const response = await User.findByIdAndUpdate(
+      { _id: recruiterId },
+      {
+        $set: {
+          ...req.body,
+        },
+      },
+      { new: true } //Returns the modified data, without this you will get original data
+    );
+    res.send("Success, student got updated!" + response);
+  } catch (err) {
+    res.send("Something went wrong, contact your admin!!" + err);
+  }
+});
+
+router.delete("/recruiter/:id", async (req, res) => {
+  console.log("Received the delete request!");
+  const recruiterId = req.params.id;
+
+  //Add Validation for id
+  const response = await Recruiter.findByIdAndDelete(recruiterId);
+  res.send(response);
+});
+
+router.delete("/rating/:id", async (req, res) => {
+  console.log("Received the delete request!");
+  const recruiterId = req.params.id;
+
+  //Add Validation for id
+  const response = await Rating.findByIdAndDelete(recruiterId);
+  res.send(response);
+});
+
+router.delete("/user/:id", async (req, res) => {
+  console.log("Received the delete request!");
+  const recruiterId = req.params.id;
+
+  //Add Validation for id
+  const response = await User.findByIdAndDelete(recruiterId);
+  res.send(response);
+});
+
+router.post("/user/signup", async (req, res) => {
+  try {
+    const { email, password, type } = req.body;
+
+    // Check if the user type is valid
+    if (type !== "Recruiter" && type !== "Applicant") {
+      return res.status(400).send("Invalid user type");
+    }
+
+    let newUser;
+    if (type === "Recruiter") {
+      const { name, contactNumber, companyName, bio } = req.body;
+      newUser = new User({
+        email,
+        password,
+        type,
+        name,
+        contactNumber,
+        companyName,
+        bio,
+      });
+    } else if (type === "Applicant") {
+      const { name, contactNumber, education, skills, resume, profile } = req.body;
+      newUser = new User({
+        email,
+        password,
+        type,
+        name,
+        contactNumber,
+        education,
+        skills,
+        resume,
+        profile,
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newUser.password, 10);
+    newUser.password = hashedPassword;
+
+    const response = await newUser.save();
+    res.status(201).send("User created successfully" + response);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error creating user");
+  }
+});
+
+
+router.post("/user/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).send("User not found");
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).send("Invalid credentials");
+    }
+    const token = jwt.sign({ id: user._id }, "secret", { expiresIn: "1h" });
+    res.json({ token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error logging in");
+  }
+});
+
 
 const port = process.env.POR || 8100;
 app.listen(port, () => {
