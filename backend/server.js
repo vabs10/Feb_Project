@@ -67,6 +67,29 @@ router.get("/user", async (req, res) => {
   }
 });
 
+router.post("/applicant", async (req, res) => {
+  try {
+    console.log("Application", req.body);
+    const newApplication = new JobApplicant({
+      ...req.body,
+    });
+    const response = await newApplication.save();
+    res.send("Success" + response);
+  } catch (err) {
+    console.log("Error Adding the data" + err);
+  }
+});
+
+router.get("/applicant", async (req, res) => {
+  try {
+    const applications = await JobApplicant.find({});
+    console.log("getStudentsAsync :: applications Fetched :- ", applications);
+    res.json(applications);
+  } catch (err) {
+    console.log("Error findind the data" + err);
+  }
+});
+
 router.post("/recruiter", async (req, res) => {
   try {
     console.log("Application", req.body);
@@ -272,6 +295,144 @@ router.post("/user/login", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send("Error logging in");
+  }
+});
+
+router.post("/jobs", async (req, res) => {
+  try {
+    const { title, description, requirements } = req.body;
+    const newJob = new JobSchema({
+      title,
+      description,
+      requirements,
+    });
+    const response = await newJob.save();
+    res.status(201).send("Job created successfully: " + response);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error creating job");
+  }
+});
+
+router.put("/jobs/:id", async (req, res) => {
+  console.log("Received the Update job request!");
+  try {
+    const jobId = req.params.id;
+    const { title, description, requirements } = req.body;
+    const updatedJob = await JobSchema.findByIdAndUpdate(
+      jobId,
+      { title, description, requirements },
+      { new: true }
+    );
+    res.send("Success, job updated: " + updatedJob);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error updating job");
+  }
+});
+
+router.delete("/jobs/:id", async (req, res) => {
+  console.log("Received the delete job request!");
+  try {
+    const jobId = req.params.id;
+    const response = await JobSchema.findByIdAndDelete(jobId);
+    res.send("Success, job deleted: " + response);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error deleting job");
+  }
+});
+
+router.post("/applications/:jobId/apply", async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    const { applicantId, statementOfPurpose } = req.body;
+
+    const job = await JobSchema.findById(jobId);
+    if (!job) {
+      return res.status(404).send("Job not found");
+    }
+
+    const applicant = await JobApplicant.findById(applicantId);
+    if (!applicant) {
+      return res.status(404).send("Applicant not found");
+    }
+
+    // Logic to apply for the job, save application details, etc.
+    const application = new Application({
+      jobId,
+      applicantId,
+      statementOfPurpose,
+    });
+    const response = await application.save();
+    res.status(201).send("Application submitted successfully: " + response);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error submitting application");
+  }
+});
+
+router.put("/applications/:applicationId/accept", async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const updatedApplication = await Application.findByIdAndUpdate(
+      applicationId,
+      { status: "Accepted" },
+      { new: true }
+    );
+    res.send("Success, application accepted: " + updatedApplication);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error accepting application");
+  }
+});
+
+router.put("/applications/:applicationId/shortlist", async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const updatedApplication = await Application.findByIdAndUpdate(
+      applicationId,
+      { status: "Shortlisted" },
+      { new: true }
+    );
+    res.send("Success, application shortlisted: " + updatedApplication);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error shortlisting application");
+  }
+});
+
+router.put("/applications/:applicationId/reject", async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const updatedApplication = await Application.findByIdAndUpdate(
+      applicationId,
+      { status: "Rejected" },
+      { new: true }
+    );
+    res.send("Success, application rejected: " + updatedApplication);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error rejecting application");
+  }
+});
+
+router.get("/applications/:applicationId/resume", async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const application = await Application.findById(applicationId);
+    if (!application) {
+      return res.status(404).send("Application not found");
+    }
+    const applicant = await JobApplicant.findById(application.applicantId);
+    if (!applicant) {
+      return res.status(404).send("Applicant not found");
+    }
+    // Return applicant's resume
+    res.download(applicant.resume);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error downloading resume");
   }
 });
 
