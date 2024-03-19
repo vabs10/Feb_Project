@@ -436,6 +436,32 @@ router.get("/applications/:applicationId/resume", async (req, res) => {
   }
 });
 
+router.post("/upload", upload.fields([{name: 'resume', maxCount: 1}, {name: 'profile', maxCount: 1}]), async (req, res) => {
+  try {
+      console.log("request body: ", req.body);
+      console.log("uploaded file: ", req.files);
+      if(Object.keys(req.body).length === 0) {
+          res.send("Unable to post application becasue it is empty!"); 
+          return; 
+      }
+
+      const applicationDetails = {
+          ...req.body, 
+          resume: req.files.resume[0].path,
+          profile: req.files.profile[0].path, 
+      };
+
+      const newApplication = new Application(applicationDetails); 
+
+      const response = await newApplication.save();
+      res.send(response);
+
+  } catch (err) {
+      res.send("something went wrong!  ", err); 
+  }
+
+} );
+
 
 const port = process.env.POR || 8100;
 app.listen(port, () => {
