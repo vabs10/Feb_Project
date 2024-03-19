@@ -10,8 +10,8 @@ const { JobApplicant } = require("./Schema/JobApplicant");
 const { JobSchema } = require("./Schema/Job");
 const { Rating } = require("./Schema/Rating");
 const { User } = require("./Schema/User");
-
 const { Recruiter } = require("./Schema/Recruiter");
+
 
 // Need to commit
 function init() {
