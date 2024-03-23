@@ -1,0 +1,18 @@
+[
+  {
+    "Recruiter": {
+        "name": "Sashikala",
+        "email": "sashi@gmail.com",
+        "number":95412357860,
+        "role": "Recruiter",
+        "password": "test1234"
+    },
+    {
+      "name": "Darvik",
+      "email": "darvik@gmail",
+      "number":123,
+      "role": "Applicant",
+      "password": "test1234"
+  }
+  }
+]
